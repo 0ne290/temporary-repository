@@ -38,6 +38,21 @@ func (m *SafeMap) Set(key, value int) {
 	m.data[key] = value
 }
 
+func (m *SafeMap) Update(key int, modifier func(int) int) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	m.hitCount++
+
+	val, exists := m.data[key]
+	if !exists {
+		val = 0
+		m.addCount++
+	}
+
+	m.data[key] = modifier(val)
+}
+
 func (m *SafeMap) GetHitCount() int {
 	m.mu.Lock()
 	defer m.mu.Unlock()
