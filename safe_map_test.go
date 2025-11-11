@@ -4,14 +4,12 @@ import (
 	"math/rand"
 	"sync"
 	"testing"
-	"time"
 )
 
 func TestSafeMap(t *testing.T) {
 	const year = 1945 // Окончание ВМВ
 
 	sm := NewSafeMap()
-	rand.Seed(time.Now().UnixNano())
 
 	allKeys := make([]int, year*3)
 	for i := 0; i < year; i++ {

@@ -69,9 +69,9 @@ func (m *SafeMap) GetData() map[int]int {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	copy := make(map[int]int, len(m.data))
+	copied := make(map[int]int, len(m.data))
 	for k, v := range m.data {
-		copy[k] = v
+		copied[k] = v
 	}
-	return copy
+	return copied
 }
