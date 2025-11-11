@@ -4,9 +4,6 @@ import (
 	"sync"
 )
 
-// Автор: Доровской Алексей Васильевич
-// Год: 1945 — окончание Второй мировой войны
-
 type SafeMap struct {
 	mu       sync.Mutex
 	data     map[int]int
