@@ -8,45 +8,41 @@ import (
 )
 
 func TestSafeMap(t *testing.T) {
-	const year = 1945 // Окончание Второй мировой войны. Источник: любой
+	const year = 1945 // Окончание ВМВ
 
 	sm := NewSafeMap()
 	rand.Seed(time.Now().UnixNano())
 
-	keys := make([]int, year*3)
+	allKeys := make([]int, year*3)
 	for i := 0; i < year; i++ {
-		keys[i] = i + 1
-		keys[year+i] = i + 1
-		keys[2*year+i] = i + 1
+		allKeys[i*3] = i + 1
+		allKeys[i*3+1] = i + 1
+		allKeys[i*3+2] = i + 1
 	}
 
-	rand.Shuffle(len(keys), func(i, j int) {
-		keys[i], keys[j] = keys[j], keys[i]
+	rand.Shuffle(len(allKeys), func(i, j int) {
+		allKeys[i], allKeys[j] = allKeys[j], allKeys[i]
 	})
 
-	chunkSize := len(keys) / 4
-	chunks := make([][]int, 4)
-	for i := 0; i < 3; i++ {
-		chunks[i] = keys[i*chunkSize : (i+1)*chunkSize]
+	tasks := make(chan int, len(allKeys))
+	for _, key := range allKeys {
+		tasks <- key
 	}
-	chunks[3] = keys[3*chunkSize:]
+	close(tasks)
 
 	wg := sync.WaitGroup{}
-
-	process := func(keyList []int) {
+	process := func() {
 		defer wg.Done()
-		for _, key := range keyList {
-			val, exists := sm.Get(key)
-			if !exists {
-				val = 0
-			}
-			sm.Set(key, val+1)
+		for key := range tasks {
+			sm.Update(key, func(v int) int {
+				return v + 1
+			})
 		}
 	}
 
 	wg.Add(4)
 	for i := 0; i < 4; i++ {
-		go process(chunks[i])
+		go process()
 	}
 
 	wg.Wait()
@@ -72,5 +68,5 @@ func TestSafeMap(t *testing.T) {
 		t.Fatalf("expected addCount=%d, got %d", year, sm.GetAddCount())
 	}
 
-	t.Logf("Test passed: %d keys, each with value 3", year)
+	t.Logf("✅ Test passed: %d keys, each with value 3", year)
 }
